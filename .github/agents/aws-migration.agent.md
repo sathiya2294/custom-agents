@@ -31,13 +31,16 @@ These helper class names and method signatures are preserved in the v2 upgrade, 
 8. If any required named file is missing, stop and report the missing file(s)
 
 ### Phase 1: Discovery
-1. Search for all `pom.xml` files and identify SDK v1 dependencies and `vtw-aws-common` usage
-2. Search for all Java files importing `com.amazonaws.*`
-3. Search for all Java files using vtw-aws-common helpers
-4. Search for Spring XML configs referencing AWS beans
-5. Search for properties files with AWS endpoints
-6. Search for log configs with `com.amazonaws` logger references
-7. Present a summary of all files needing migration
+1. For each module being considered, run `mvn dependency:tree "-Dincludes=com.amazonaws"` from the module directory
+2. If no `com.amazonaws` artifacts appear in the output, **skip that module** — no SDK v1 dependencies are present
+3. Only proceed with steps 4–9 for modules where `com.amazonaws` artifacts are confirmed in the resolved tree (compile-scoped artifacts are the primary concern)
+4. Search for all `pom.xml` files and identify SDK v1 dependencies and `vtw-aws-common` usage
+5. Search for all Java files importing `com.amazonaws.*`
+6. Search for all Java files using vtw-aws-common helpers
+7. Search for Spring XML configs referencing AWS beans
+8. Search for properties files with AWS endpoints
+9. Search for log configs with `com.amazonaws` logger references
+10. Present a summary of all files needing migration
 
 ### Phase 2: Migration Plan
 Present a categorized list of changes needed:

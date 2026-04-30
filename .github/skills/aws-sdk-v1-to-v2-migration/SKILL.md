@@ -16,6 +16,30 @@ This skill migrates Java code from AWS SDK v1 (`com.amazonaws`) to AWS SDK v2 (`
 
 ## Procedure
 
+### Step 0: Pre-flight Dependency Check
+
+Before making any changes, confirm the module actually contains AWS SDK v1 artifacts in its resolved dependency tree.
+
+Run the following command from the module directory (where its `pom.xml` lives):
+
+```bash
+mvn dependency:tree "-Dincludes=com.amazonaws"
+```
+
+**Evaluate the output:**
+
+- If the output contains **no `com.amazonaws` artifacts** → the module has no SDK v1 dependencies. **Stop here — no migration is needed for this module.**
+- If the output lists one or more `com.amazonaws` artifacts (e.g. `aws-java-sdk-dynamodb`, `aws-java-sdk-sqs`, `aws-java-sdk-s3`, `aws-java-sdk`, `aws-java-sdk-simpleworkflow`) → SDK v1 is present. **Proceed to Step 1.**
+
+Example output that requires migration:
+```
+[INFO] com.elsevier.vtw:my-module:jar:1.0.0
+[INFO] \- com.amazonaws:aws-java-sdk-dynamodb:jar:1.12.792:compile
+[INFO]    \- com.amazonaws:aws-java-sdk-core:jar:1.12.792:compile
+```
+
+> **Note:** Run this check for each module independently in a multi-module project. A module that inherits from a parent pom may pull in SDK v1 transitively — the `mvn dependency:tree` output will reveal this. Only compile-scoped `com.amazonaws` artifacts require migration; test-scoped transitive ones (e.g. via `aws-java-sdk-swf-libraries`) may not need code changes.
+
 ### Step 1: Analyze the Repository
 
 Scan the repository to identify all files that need migration:
